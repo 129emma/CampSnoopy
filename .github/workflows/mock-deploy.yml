@@ -69,7 +69,7 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.name,
-              workflow_id: 'generate-changelog.yml',
+              workflow_id: '.github/workflows/generate-changelog.yml',
               ref: context.ref,
               inputs: {
                 environment: '${{ inputs.environment }}'
