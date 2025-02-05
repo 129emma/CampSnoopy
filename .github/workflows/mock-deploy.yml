@@ -69,9 +69,20 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.name,
-              workflow_id: '.github/workflows/generate-changelog.yml',
-              ref: context.ref,
+              workflow_id: 'generate-changelog.yml',
+              ref: '${{ github.ref }}',
               inputs: {
                 environment: '${{ inputs.environment }}'
               }
             });
+
+  generate-changelog:
+    needs: mock-deploy
+    if: inputs.environment == 'prod' || inputs.environment == 'uat'
+    uses: ./.github/workflows/generate-changelog.yml
+    with:
+      environment: ${{ inputs.environment }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
