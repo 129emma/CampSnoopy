@@ -45,19 +45,16 @@ jobs:
       - name: Mock Build Process
         run: |
           echo "🏗️ Building application..."
-          sleep 5
           echo "✅ Build completed"
 
       - name: Mock Tests
         run: |
           echo "🧪 Running tests..."
-          sleep 3
           echo "✅ Tests passed"
 
       - name: Mock Deploy
         run: |
           echo "🚀 Deploying to ${{ inputs.environment }}..."
-          sleep 5
           echo "✅ Deployment completed"
 
   generate-changelog:

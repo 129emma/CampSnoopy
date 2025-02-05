@@ -1,8 +1,12 @@
 {
   "name": "CampSnoopy",
-  "packageManager": "yarn@4.5.1",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@9.3.0",
   "dependencies": {
     "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
     "semantic-release": "^24.2.1"
   },
