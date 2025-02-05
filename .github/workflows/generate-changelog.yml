@@ -16,8 +16,7 @@ permissions:
 jobs:
   generate-changelog:
     name: generate-changelog
-    # Only run for production deployments
-    if: inputs.environment == 'prod'
+    if: inputs.environment == 'prod' || inputs.environment == 'uat'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,5 +32,10 @@ jobs:
       - name: Generate Release Documentation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRERELEASE: ${{ inputs.environment == 'uat' }}
         run: |
-          yarn dlx semantic-release
+          if [ "$PRERELEASE" = "true" ]; then
+            yarn dlx semantic-release --prerelease
+          else
+            yarn dlx semantic-release
+          fi

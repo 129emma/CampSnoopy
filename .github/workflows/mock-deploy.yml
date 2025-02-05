@@ -1,12 +1,17 @@
-name: generate-changelog
+name: Mock Deploy
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: string
+          description: environment to deploy to
+          required: true
+          type: choice
+          default: dev
+          options:
+            - dev
+            - uat
+            - prod
 
 permissions:
   contents: write
@@ -14,10 +19,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  generate-changelog:
-    name: generate-changelog
-    # Only run for production deployments
-    if: inputs.environment == 'prod'
+  mock-deploy:
+    name: mock-deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,8 +39,39 @@ jobs:
       - name: Setup Yarn
         run: corepack prepare yarn@4.5.1 --activate
 
-      - name: Generate Release Documentation
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Mock Build Process
         run: |
-          yarn dlx semantic-release
+          echo "🏗️ Building application..."
+          sleep 5
+          echo "✅ Build completed"
+
+      - name: Mock Tests
+        run: |
+          echo "🧪 Running tests..."
+          sleep 3
+          echo "✅ Tests passed"
+
+      - name: Mock Deploy
+        run: |
+          echo "🚀 Deploying to ${{ inputs.environment }}..."
+          sleep 5
+          echo "✅ Deployment completed"
+
+      - name: Trigger Changelog Generation
+        if: inputs.environment == 'prod' || inputs.environment == 'uat'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              workflow_id: 'generate-changelog.yml',
+              ref: context.ref,
+              inputs: {
+                environment: '${{ inputs.environment }}'
+              }
+            });
