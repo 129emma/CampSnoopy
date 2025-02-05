@@ -29,6 +29,12 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Yarn
+        run: corepack prepare yarn@4.5.1 --activate
+
       - name: Generate Release Documentation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
