@@ -1,71 +1,43 @@
-name: Mock Deploy
+name: generate-changelog
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       environment:
         description: 'Environment to deploy to'
         required: true
-        type: choice
-        options:
-          - dev
-          - uat
-          - prod
-      deploy_tag:
-        description: 'Tag/Version to deploy'
-        required: true
         type: string
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
-  mock-deploy:
-    name: Mock Deploy to ${{ inputs.environment }}
+  generate-changelog:
+    name: generate-changelog
+    # Only run for production deployments
+    if: inputs.environment == 'prod'
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Setup Yarn
-        uses: DerYeger/yarn-setup-action@master
-        with:
-          node-version: 16
+        run: corepack prepare yarn@4.5.1 --activate
 
-      - name: Install dependencies
-        run: yarn install
-
-
-      - name: Mock Build
+      - name: Generate Release Documentation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "🏗️ Building application for ${{ inputs.environment }} environment..."
-          echo "Using tag: ${{ inputs.deploy_tag }}"
-          sleep 5
-
-      - name: Mock Test
-        run: |
-          echo "🧪 Running tests..."
-          sleep 3
-          echo "Tests passed successfully!"
-
-      - name: Mock Deploy
-        run: |
-          echo "🚀 Deploying to ${{ inputs.environment }} environment..."
-          sleep 5
-          echo "Deployment completed successfully!"
-
-      - name: Generate Changelog
-        uses: ./.github/workflows/generate-changelog.yml
-        with:
-          environment: ${{ inputs.environment }}
-
-      - name: Deployment Summary
-        run: |
-          echo "✅ Deployment Summary:"
-          echo "Environment: ${{ inputs.environment }}"
-          echo "Version: ${{ inputs.deploy_tag }}"
-          echo "Status: Completed" 
+          yarn dlx semantic-release
