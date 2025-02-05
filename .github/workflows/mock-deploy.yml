@@ -39,6 +39,7 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+
       - name: Mock Build
         run: |
           echo "🏗️ Building application for ${{ inputs.environment }} environment..."
