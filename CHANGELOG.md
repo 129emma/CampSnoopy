@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/129emma/CampSnoopy/compare/v1.0.0...v1.0.1) (2025-02-05)
+
+
+### Bug Fixes
+
+* 🐛 replace with pnpm ([a5f278c](https://github.com/129emma/CampSnoopy/commit/a5f278cf281e787821a3a3b9f5337a2526896238))
+* 🐛 update ci ([3a86af7](https://github.com/129emma/CampSnoopy/commit/3a86af7476a7eeda7147d9960ce106ca69e5b3ae))
+
 # Changelog
 
 ## 1.0.0 (2025-02-04)
