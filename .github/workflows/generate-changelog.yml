@@ -29,9 +29,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Setup PNPM
         uses: pnpm/action-setup@v2
         with:

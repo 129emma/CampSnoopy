@@ -26,21 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Setup Yarn
-        run: corepack prepare yarn@4.5.1 --activate
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+          fetch-depth: 0 
 
       - name: Mock Build Process
         run: |
