@@ -59,6 +59,11 @@ jobs:
           echo "🚀 Deploying to ${{ inputs.environment }}..."
           sleep 5
           echo "✅ Deployment completed"
+      
+      - name: Debug Repo Info
+        run: |
+          echo "Owner: ${{ github.repository_owner }}"
+          echo "Repo: ${{ github.repository }}"
 
       - name: Trigger Changelog Generation
         if: inputs.environment == 'prod' || inputs.environment == 'uat'
@@ -66,9 +71,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
             await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.name,
+              owner: owner,
+              repo: repo,
               workflow_id: 'generate-changelog.yml',
               ref: '${{ github.ref }}',
               inputs: {
