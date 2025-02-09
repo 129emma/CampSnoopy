@@ -12,6 +12,14 @@ on:
             - dev
             - uat
             - prod
+      releaseType:
+        description: release type to deploy
+        required: true
+        type: choice
+        default: semantic
+        options:
+          - semantic
+          - release-please
 
 permissions:
   contents: write
@@ -43,9 +51,11 @@ jobs:
           echo "🚀 Deploying to ${{ inputs.environment }}..."
           echo "✅ Deployment completed"
 
-  generate-changelog:
+  semantic-release:
     needs: mock-deploy
-    if: inputs.environment == 'prod' || inputs.environment == 'uat'
+    if: |
+      inputs.releaseType == 'semantic' && 
+      (inputs.environment == 'prod' || inputs.environment == 'uat')
     uses: ./.github/workflows/generate-changelog.yml
     with:
       environment: ${{ inputs.environment }}
@@ -53,4 +63,17 @@ jobs:
     permissions:
       contents: write
       issues: write
+      pull-requests: write
+
+  release-please:
+    needs: mock-deploy
+    if: |
+      inputs.releaseType == 'release-please' && 
+      (inputs.environment == 'prod' || inputs.environment == 'uat')
+    uses: ./.github/workflows/release-please.yml
+    with:
+      release-type: 'simple'
+    secrets: inherit
+    permissions:
+      contents: write
       pull-requests: write

@@ -1,13 +1,12 @@
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      release-type:
-        description: 'Release type'
+      environment:
+        description: 'Environment to deploy to'
         required: true
-        default: 'simple'
-        
-      
-    
+        type: string
+
+
 permissions:
    contents: write
    pull-requests: write
@@ -26,4 +25,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           # this is a built-in strategy in release-please, see "Action Inputs"
           # for more options
-          release-type: ${{ inputs.release-type }}
+          release-type: "simple"
