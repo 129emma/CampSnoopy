@@ -1,3 +1,5 @@
+## [1.1.5](https://github.com/129emma/CampSnoopy/compare/v1.1.4...v1.1.5) (2025-02-09)
+
 ## [1.0.1](https://github.com/129emma/CampSnoopy/compare/v1.0.0...v1.0.1) (2025-02-05)
 
 
