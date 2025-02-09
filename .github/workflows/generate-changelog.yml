@@ -25,7 +25,13 @@ jobs:
         with:
           app_id: ${{ secrets.BOT_APP_ID }}
           private_key: ${{ secrets.BOT_PRIVATE_KEY }}
- 
+      
+      - shell: bash
+        env:
+          SUPER_SECRET: ${{ secrets.BOT_APP_ID }}
+        run: |
+            echo "$SUPER_SECRET" # this line, log your SUPER_SECRET
+      
       - name: Checkout
         uses: actions/checkout@v4
         with:
