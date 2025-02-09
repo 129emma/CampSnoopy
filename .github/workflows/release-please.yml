@@ -1,18 +1,13 @@
+name: Release Please
+
 on:
   workflow_call:
     inputs:
       environment:
-        description: 'Environment to deploy to'
         required: true
         type: string
+        description: 'Environment to deploy to'
 
-
-permissions:
-   contents: write
-   pull-requests: write
-    
-name: release-please
-    
 jobs:
   release-please:
     runs-on: ubuntu-latest

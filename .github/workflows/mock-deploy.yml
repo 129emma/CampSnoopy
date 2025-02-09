@@ -72,7 +72,7 @@ jobs:
       (inputs.environment == 'prod' || inputs.environment == 'uat')
     uses: ./.github/workflows/release-please.yml
     with:
-      release-type: 'simple'
+      environment: ${{ inputs.environment }}
     secrets: inherit
     permissions:
       contents: write
