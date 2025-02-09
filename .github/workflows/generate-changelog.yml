@@ -19,13 +19,14 @@ jobs:
     if: inputs.environment == 'prod' || inputs.environment == 'uat'
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
-    steps:  
-      - shell: bash
-        env:
-          SUPER_SECRET: ${{ secrets.BOT_APP_ID }}
-        run: |
-            echo "$SUPER_SECRET" # this line, log your SUPER_SECRET
-      
+    steps:
+      - name: 'Generate token'
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.BOT_APP_ID }}
+          private_key: ${{ secrets.BOT_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
