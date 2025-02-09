@@ -5,6 +5,13 @@
 
 * 🐛 update release github ([#13](https://github.com/129emma/CampSnoopy/issues/13)) ([777665f](https://github.com/129emma/CampSnoopy/commit/777665f78eb84dd30c8bfeb4d6089cef3faae32b))
 
+## [1.1.8](https://github.com/129emma/CampSnoopy/compare/v1.1.7...v1.1.8) (2025-02-09)
+
+
+### Bug Fixes
+
+* try commit to main ([763540d](https://github.com/129emma/CampSnoopy/commit/763540da1fa7bc587978f9b5c6f283c67771c563))
+
 ## [1.1.6](https://github.com/129emma/CampSnoopy/compare/v1.1.5...v1.1.6) (2025-02-09)
 
 ## [1.1.5](https://github.com/129emma/CampSnoopy/compare/v1.1.4...v1.1.5) (2025-02-09)
