@@ -22,7 +22,7 @@ jobs:
       
       - shell: bash
         env:
-          SUPER_SECRET: ${{ secrets.BOT_APP_ID }}
+          SUPER_SECRET: ${{ secrets.GITHUB_TOKEN }}
         run: |
             echo "$SUPER_SECRET" # this line, log your SUPER_SECRET
       
