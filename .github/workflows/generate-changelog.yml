@@ -17,12 +17,12 @@ jobs:
   generate-changelog:
     name: generate-changelog
     if: inputs.environment == 'prod' || inputs.environment == 'uat'
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
-    steps:
-      
+    steps:  
       - shell: bash
         env:
-          SUPER_SECRET: ${{ secrets.GITHUB_TOKEN }}
+          SUPER_SECRET: ${{ secrets.BOT_APP_ID }}
         run: |
             echo "$SUPER_SECRET" # this line, log your SUPER_SECRET
       
