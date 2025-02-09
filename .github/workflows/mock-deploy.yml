@@ -49,6 +49,7 @@ jobs:
     uses: ./.github/workflows/generate-changelog.yml
     with:
       environment: ${{ inputs.environment }}
+    secrets: inherit
     permissions:
       contents: write
       issues: write
