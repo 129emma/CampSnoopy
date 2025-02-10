@@ -1,4 +1,9 @@
 {
+  "branches": [
+    "main",
+    "refs/tags/v*",
+    "v*"
+  ],
   "tagFormat": "v${version}",
   "plugins": [
     "@semantic-release/commit-analyzer",
