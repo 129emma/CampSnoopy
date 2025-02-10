@@ -2,8 +2,8 @@ name: mock-deploy
 
 on:
   workflow_dispatch:
+    tags:
     inputs:
-      ref:
       environment:
         description: environment to deploy to
         required: true
