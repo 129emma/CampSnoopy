@@ -96,7 +96,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.ref_name }}
+          ref: changelog
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -141,10 +141,6 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
     secrets: inherit
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
 
   release-please:
     needs: mock-deploy
@@ -158,3 +154,53 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+
+  create-github-release:
+    needs: [semantic-release, release-please]
+    if: |
+      always() &&
+      (needs.semantic-release.result == 'success' || needs.release-please.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: changelog
+
+      - name: Read CHANGELOG.md
+        id: changelog
+        run: |
+          CHANGELOG_CONTENT=$(cat CHANGELOG.md)
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Get Latest Version
+        id: version
+        run: |
+          VERSION=$(head -n 1 CHANGELOG.md | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get Commit Hashes
+        id: hashes
+        run: |
+          MAIN_HASH=$(git rev-parse origin/main)
+          RELEASE_HASH=${{ github.sha }}
+          echo "main_hash=$MAIN_HASH" >> $GITHUB_OUTPUT
+          echo "release_hash=$RELEASE_HASH" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_NOTES="## Commit Information\n"
+          RELEASE_NOTES+="- Main Branch: ${{ steps.hashes.outputs.main_hash }}\n"
+          RELEASE_NOTES+="- Release: ${{ steps.hashes.outputs.release_hash }}\n\n"
+          RELEASE_NOTES+="## Changelog\n"
+          RELEASE_NOTES+="${{ steps.changelog.outputs.content }}"
+          
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "Release v${{ steps.version.outputs.version }}" \
+            --notes "$RELEASE_NOTES" \
+            --hash ${{ steps.hashes.outputs.release_hash }}
