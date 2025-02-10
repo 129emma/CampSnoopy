@@ -3,8 +3,8 @@ name: mock-deploy
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Tag to deploy'
+      ref:
+        description: 'Select tag or branch to deploy'
         required: true
         type: string
       environment:
@@ -66,7 +66,7 @@ jobs:
         id: compare-tags
         run: |
           DEPLOYED_TAG="${{ steps.get-tag.outputs.deployed_tag }}"
-          RELEASE_TAG="${{ inputs.tag }}"
+          RELEASE_TAG="${{ inputs.ref }}"
           
           if [ "$DEPLOYED_TAG" = "v0.0.0" ]; then
             echo "✅ First deployment to environment"
@@ -75,8 +75,13 @@ jobs:
           fi
           
           # Convert tags to commit timestamps
+          if [ "$RELEASE_TAG" = "main" ]; then
+            RELEASE_TIME=$(git log -1 --format=%at "origin/main")
+          else
+            RELEASE_TIME=$(git log -1 --format=%at "refs/tags/${RELEASE_TAG}")
+          fi
+          
           DEPLOYED_TIME=$(git log -1 --format=%at "refs/tags/${DEPLOYED_TAG}")
-          RELEASE_TIME=$(git log -1 --format=%at "refs/tags/${RELEASE_TAG}")
           
           if [ $RELEASE_TIME -lt $DEPLOYED_TIME ]; then
             echo "⚠️ Warning: Release tag ($RELEASE_TAG) is older than deployed tag ($DEPLOYED_TAG)"
@@ -95,7 +100,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -111,24 +116,24 @@ jobs:
           echo "📋 Changes to be deployed:"
           conventional-changelog -p angular \
             --from ${{ needs.get-deployed-tag.outputs.deployed_tag }} \
-            --to ${{ inputs.tag }} \
+            --to ${{ inputs.ref }} \
             --release-count 0
 
       - name: Mock Build Process
         run: |
           echo "🏗️ Building application..."
-          echo "Building version: ${{ inputs.tag }}"
+          echo "Building version: ${{ inputs.ref }}"
           echo "✅ Build completed"
 
       - name: Mock Tests
         run: |
           echo "🧪 Running tests..."
-          echo "Testing version: ${{ inputs.tag }}"
+          echo "Testing version: ${{ inputs.ref }}"
           echo "✅ Tests passed"
 
       - name: Mock Deploy
         run: |
-          echo "🚀 Deploying version ${{ inputs.tag }} to ${{ inputs.environment }}..."
+          echo "🚀 Deploying version ${{ inputs.ref }} to ${{ inputs.environment }}..."
           echo "✅ Deployment completed"
 
   semantic-release:
