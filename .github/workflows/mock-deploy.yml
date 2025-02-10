@@ -2,11 +2,8 @@ name: mock-deploy
 
 on:
   workflow_dispatch:
+    tags:
     inputs:
-      ref:
-        description: 'Select tag or branch to deploy'
-        required: true
-        type: string
       environment:
         description: environment to deploy to
         required: true
