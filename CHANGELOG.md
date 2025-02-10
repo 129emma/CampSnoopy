@@ -1,3 +1,10 @@
+## [1.1.8](https://github.com/129emma/CampSnoopy/compare/v1.1.7...v1.1.8) (2025-02-10)
+
+
+### Bug Fixes
+
+* 🐛 test fix commit ([ae00a92](https://github.com/129emma/CampSnoopy/commit/ae00a92ab3c6180e36fe522ad73e25241fdfb29c))
+
 ## [1.1.7](https://github.com/129emma/CampSnoopy/compare/v1.1.6...v1.1.7) (2025-02-09)
 
 
