@@ -1,7 +1,5 @@
 {
   "branches": [
-    "main",
-    {"name": "main", "prerelease": "uat", "channel": "uat"},
     {"name": "refs/tags/v*"}
   ],
   "tagFormat": "v${version}",
