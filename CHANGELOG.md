@@ -1,3 +1,12 @@
+# Changelog for ${nextRelease.version}
+
+## [1.15.1](https://github.com/129emma/CampSnoopy/compare/v1.15.0...v1.15.1) (2025-02-10)
+
+
+### Bug Fixes
+
+* 🐛 disable create tag ([a6e2ac3](https://github.com/129emma/CampSnoopy/commit/a6e2ac31349fd20a544a634f6b9a6e8364fccc8d))
+
 ## [1.1.8](https://github.com/129emma/CampSnoopy/compare/v1.1.7...v1.1.8) (2025-02-10)
 
 
