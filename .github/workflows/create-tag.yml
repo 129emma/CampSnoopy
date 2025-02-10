@@ -12,17 +12,19 @@ jobs:
       new_tag: ${{ steps.tag.outputs.new_tag }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Generate GitHub App Token
         id: generate_token
         uses: tibdex/github-app-token@v2
         with:
           app_id: ${{ secrets.BOT_APP_ID }}
-          private_key: ${{ secrets.BOT_PRIVATE_KEY }} 
+          private_key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.generate_token.outputs.token }}
 
       - name: Set up Git with GitHub App credentials
         run: |
