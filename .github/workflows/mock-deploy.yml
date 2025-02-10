@@ -96,7 +96,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -112,24 +112,24 @@ jobs:
           echo "📋 Changes to be deployed:"
           conventional-changelog -p angular \
             --from ${{ needs.get-deployed-tag.outputs.deployed_tag }} \
-            --to ${{ inputs.ref }} \
+            --to ${{ github.ref_name }} \
             --release-count 0
 
       - name: Mock Build Process
         run: |
           echo "🏗️ Building application..."
-          echo "Building version: ${{ inputs.ref }}"
+          echo "Building version: ${{ github.ref_name }}"
           echo "✅ Build completed"
 
       - name: Mock Tests
         run: |
           echo "🧪 Running tests..."
-          echo "Testing version: ${{ inputs.ref }}"
+          echo "Testing version: ${{ github.ref_name }}"
           echo "✅ Tests passed"
 
       - name: Mock Deploy
         run: |
-          echo "🚀 Deploying version ${{ inputs.ref }} to ${{ inputs.environment }}..."
+          echo "🚀 Deploying version ${{ github.ref_name }} to ${{ inputs.environment }}..."
           echo "✅ Deployment completed"
 
   semantic-release:
