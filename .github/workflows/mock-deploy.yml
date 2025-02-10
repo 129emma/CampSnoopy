@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'Select tag or branch to deploy'
-        required: true
-        type: string
       environment:
         description: environment to deploy to
         required: true
