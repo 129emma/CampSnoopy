@@ -5,23 +5,21 @@ on:
     branches:
       - main
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   create-tag:
     runs-on: ubuntu-latest
     outputs:
       new_tag: ${{ steps.tag.outputs.new_tag }}
-    
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
-      - name: 'Generate token'
+      - name: Generate GitHub App Token
         id: generate_token
-        uses: tibdex/github-app-token@v1
+        uses: tibdex/github-app-token@v2
         with:
           app_id: ${{ secrets.BOT_APP_ID }}
           private_key: ${{ secrets.BOT_PRIVATE_KEY }} 
@@ -30,7 +28,7 @@ jobs:
         id: tag
         uses: anothrNick/github-tag-action@1.67.0
         env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}  # Use the GitHub App token
           WITH_V: true
           DEFAULT_BUMP: minor
           RELEASE_BRANCHES: release
@@ -50,10 +48,21 @@ jobs:
         run: |
           git config --global user.name 'SnoopyCamp'
           git config --global user.email 'SnoopyCamp[bot]@users.noreply.github.com'
+
+          # Fetch latest changes
+          git fetch origin main release --prune
+
+          # Check if release branch exists
+          if git show-ref --verify --quiet refs/remotes/origin/release; then
+            echo "Release branch exists. Proceeding with merge."
+            git checkout release
+          else
+            echo "Release branch does not exist. Creating it."
+            git checkout -b release
+          fi
+
           MAIN_HASH=$(git rev-parse origin/main)
-          git fetch origin release
-          git checkout release
           git merge origin/main --no-ff -m "Merge main into release (main hash: ${MAIN_HASH})"
           git push origin release
         env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}  # Use the GitHub App token
