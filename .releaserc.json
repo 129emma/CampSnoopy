@@ -1,6 +1,6 @@
 {
   "branches": [
-    "refs/tags/v*"
+    "main"
   ],
   "tagFormat": "v${version}",
   "plugins": [

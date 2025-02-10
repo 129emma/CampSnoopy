@@ -52,7 +52,7 @@ jobs:
           PRERELEASE: ${{ inputs.environment == 'uat' }}
         run: |
           if [ "$PRERELEASE" = "true" ]; then
-            pnpm semantic-release --prerelease --branches=refs/tags/${{ github.ref_name }}
+            pnpm semantic-release --prerelease
           else
             pnpm semantic-release
           fi
