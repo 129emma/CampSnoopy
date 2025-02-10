@@ -3,15 +3,19 @@ name: mock-deploy
 on:
   workflow_dispatch:
     inputs:
+      tag:
+        description: 'Tag to deploy'
+        required: true
+        type: string
       environment:
-          description: environment to deploy to
-          required: true
-          type: choice
-          default: dev
-          options:
-            - dev
-            - uat
-            - prod
+        description: environment to deploy to
+        required: true
+        type: choice
+        default: dev
+        options:
+          - dev
+          - uat
+          - prod
       releaseType:
         description: release type to deploy
         required: true
@@ -27,28 +31,104 @@ permissions:
   pull-requests: write
 
 jobs:
+  get-deployed-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      deployed_tag: ${{ steps.get-tag.outputs.deployed_tag }}
+      should_deploy: ${{ steps.compare-tags.outputs.should_deploy }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Latest Deployment
+        id: get-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get the latest successful deployment for the environment
+          DEPLOYMENT=$(gh api \
+            repos/${{ github.repository }}/deployments \
+            --jq ".[] | select(.environment == \"${{ inputs.environment }}\" and .state == \"success\") | .ref" \
+            --limit 1)
+          
+          if [ -z "$DEPLOYMENT" ]; then
+            echo "No previous deployment found for ${{ inputs.environment }}"
+            # Set to a very old tag or commit to allow first deployment
+            echo "deployed_tag=v0.0.0" >> $GITHUB_OUTPUT
+          else
+            echo "deployed_tag=${DEPLOYMENT}" >> $GITHUB_OUTPUT
+          fi
+          echo "Current deployed tag in ${{ inputs.environment }}: ${DEPLOYMENT:-none}"
+
+      - name: Compare Tags
+        id: compare-tags
+        run: |
+          DEPLOYED_TAG="${{ steps.get-tag.outputs.deployed_tag }}"
+          RELEASE_TAG="${{ inputs.tag }}"
+          
+          if [ "$DEPLOYED_TAG" = "v0.0.0" ]; then
+            echo "✅ First deployment to environment"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Convert tags to commit timestamps
+          DEPLOYED_TIME=$(git log -1 --format=%at "refs/tags/${DEPLOYED_TAG}")
+          RELEASE_TIME=$(git log -1 --format=%at "refs/tags/${RELEASE_TAG}")
+          
+          if [ $RELEASE_TIME -lt $DEPLOYED_TIME ]; then
+            echo "⚠️ Warning: Release tag ($RELEASE_TAG) is older than deployed tag ($DEPLOYED_TAG)"
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Release tag ($RELEASE_TAG) is newer than deployed tag ($DEPLOYED_TAG)"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          fi
+
   mock-deploy:
-    name: mock-deploy
+    needs: [get-deployed-tag]
+    if: needs.get-deployed-tag.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install -g conventional-changelog-cli
+
+      - name: Generate and Display Deployment Changes
+        run: |
+          echo "📋 Changes to be deployed:"
+          conventional-changelog -p angular \
+            --from ${{ needs.get-deployed-tag.outputs.deployed_tag }} \
+            --to ${{ inputs.tag }} \
+            --release-count 0
 
       - name: Mock Build Process
         run: |
           echo "🏗️ Building application..."
+          echo "Building version: ${{ inputs.tag }}"
           echo "✅ Build completed"
 
       - name: Mock Tests
         run: |
           echo "🧪 Running tests..."
+          echo "Testing version: ${{ inputs.tag }}"
           echo "✅ Tests passed"
 
       - name: Mock Deploy
         run: |
-          echo "🚀 Deploying to ${{ inputs.environment }}..."
+          echo "🚀 Deploying version ${{ inputs.tag }} to ${{ inputs.environment }}..."
           echo "✅ Deployment completed"
 
   semantic-release:
