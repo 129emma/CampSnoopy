@@ -64,9 +64,20 @@ jobs:
           # Store current HEAD commit hash
           CURRENT_SHA=$(git rev-parse HEAD)
           
+          # Get the current ref (branch or tag)
+          CURRENT_REF=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current ref: $CURRENT_REF"
+          
+          # If we're on a tag, checkout the commit it points to
+          if [[ "$CURRENT_REF" == "HEAD" ]]; then
+            git checkout $CURRENT_SHA
+          fi
+          
           # Create and push temporary branch from current HEAD
-          git checkout -b temp-release-branch-${{ github.sha }} $CURRENT_SHA
-          git push origin temp-release-branch-${{ github.sha }}
+          TEMP_BRANCH="temp-release-branch-${{ github.sha }}"
+          echo "Creating temporary branch: $TEMP_BRANCH"
+          git checkout -b $TEMP_BRANCH
+          git push origin $TEMP_BRANCH
           
           # Verify the branch is at the correct commit
           if [ "$(git rev-parse HEAD)" != "$CURRENT_SHA" ]; then
@@ -75,13 +86,10 @@ jobs:
           fi
           
           if [ "$PRERELEASE" = "true" ]; then
-            pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }} > release.log 2>&1
+            pnpm semantic-release --prerelease --branches $TEMP_BRANCH > release.log 2>&1
           else
-            pnpm semantic-release --branches temp-release-branch-${{ github.sha }} > release.log 2>&1
+            pnpm semantic-release --branches $TEMP_BRANCH > release.log 2>&1
           fi
-          
-          # Display the log file contents (equivalent to what tee was doing)
-          cat release.log
           
           # Get the version that was just released
           LATEST_VERSION=$(grep "Published release" release.log | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' || echo "")
@@ -99,13 +107,14 @@ jobs:
             git checkout main
             RELEASE_TYPE=$([ "$PRERELEASE" = "true" ] && echo "UAT" || echo "production")
             
-            git merge --no-ff temp-release-branch-${{ github.sha }} -m "chore(release): merge ${RELEASE_TYPE} changelog updates for version v${LATEST_VERSION} [skip ci]"
+            git merge --no-ff $TEMP_BRANCH -m "chore(release): merge ${RELEASE_TYPE} changelog updates for version v${LATEST_VERSION} [skip ci]"
             git push origin main
           fi
           
           # Clean up: Delete both local and remote temp branches
-          git branch -D temp-release-branch-${{ github.sha }}
-          git push origin --delete temp-release-branch-${{ github.sha }}
+          git checkout main  # Ensure we're not on the branch we're trying to delete
+          git branch -D $TEMP_BRANCH
+          git push origin --delete $TEMP_BRANCH
 
   create-release:
     needs: generate-changelog
