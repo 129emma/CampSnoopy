@@ -26,53 +26,22 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ steps.generate_token.outputs.token }}
-          ref: main
           fetch-tags: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
   
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-            version: '9'
-  
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Create test tag
+      - name: Create RC tag
         id: create_tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "=== Running semantic-release dry-run ==="
-          # Run semantic-release with output capturing both stdout and stderr
-          pnpm semantic-release --prerelease --dry-run > >(tee release.log) 2>&1 || {
-            echo "=== Error in semantic-release ==="
-            cat release.log
-            exit 1
-          }
+          # Get source branch from merge commit message
+          SOURCE_BRANCH=$(git log -1 --pretty=%B | grep -o "from '.*'" | sed "s/from '//;s/'//")
           
-          echo "=== semantic-release output ==="
-          cat release.log
+          # Get short SHA (7 characters)
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
           
-          # Get the version that was just released
-          LATEST_VERSION=$(grep "Published release" release.log | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' || echo "")
+          # Create tag using source branch name
+          NEW_TAG="${SOURCE_BRANCH}-rc-${SHORT_SHA}"
           
-          if [ -z "$LATEST_VERSION" ]; then
-            echo "No new version to be released"
-            exit 0
-          fi
-          
-          echo "Next version: $LATEST_VERSION"
-          
-          # Get short SHA
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          
-          # Create new tag
-          NEW_TAG="test/v${LATEST_VERSION}-rc-${SHORT_SHA}"
           echo "=== Creating tag: $NEW_TAG ==="
           git tag $NEW_TAG
           git push origin $NEW_TAG
@@ -81,5 +50,5 @@ jobs:
           
           # Debug information
           echo "=== Final Git State ==="
-          git tag -l "test/*" --sort=-creatordate | head -n 5
+          git tag -l "*-rc-*" --sort=-creatordate | head -n 5
           git branch --show-current

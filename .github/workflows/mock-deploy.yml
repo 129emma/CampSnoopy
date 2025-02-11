@@ -27,80 +27,77 @@ permissions:
   pull-requests: write
 
 jobs:
-  get-deployed-tag:
-    runs-on: ubuntu-latest
-    outputs:
-      deployed_tag: ${{ steps.get-tag.outputs.deployed_tag }}
-      should_deploy: ${{ steps.compare-tags.outputs.should_deploy }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.ref_name }}
+  # get-deployed-tag:
+    # runs-on: ubuntu-latest
+    # outputs:
+    #   should_deploy: ${{ steps.compare-tags.outputs.should_deploy }}
+    # steps:
+      # - name: Checkout
+      #   uses: actions/checkout@v4
+      #   with:
+      #     fetch-depth: 0
+      #     ref: ${{ github.ref_name }}
 
-      - name: Get Latest Deployment
-        id: get-tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # Add debug output for deployments
-          echo "Fetching deployments for ${{ inputs.environment }}..."
-          gh api \
-            repos/${{ github.repository }}/deployments \
-            --jq '.[] | select(.environment == "${{ inputs.environment }}") | {ref: .ref, state: .state, environment: .environment}' || echo "No deployments found"
+      # - name: Get Latest Deployment
+      #   id: get-tag
+      #   env:
+      #     GH_TOKEN: ${{ github.token }}
+      #   run: |
+      #     # Add debug output for deployments
+      #     echo "Fetching deployments for ${{ inputs.environment }}..."
+      #     gh api \
+      #       repos/${{ github.repository }}/deployments \
+      #       --jq '.[] | select(.environment == "${{ inputs.environment }}") | {ref: .ref, state: .state, environment: .environment}' || echo "No deployments found"
           
-          DEPLOYMENT=$(gh api \
-            repos/${{ github.repository }}/deployments \
-            --jq "[.[] | select(.environment == \"${{ inputs.environment }}\" and .state == \"success\")] | first | .ref")
+      #     DEPLOYMENT=$(gh api \
+      #       repos/${{ github.repository }}/deployments \
+      #       --jq "[.[] | select(.environment == \"${{ inputs.environment }}\" and .state == \"success\")] | first | .ref")
           
-          echo "Raw deployment response: $DEPLOYMENT"
+      #     echo "Raw deployment response: $DEPLOYMENT"
           
-          if [ -z "$DEPLOYMENT" ] || [ "$DEPLOYMENT" = "null" ]; then
-            echo "No previous deployment found for ${{ inputs.environment }}"
-            echo "deployed_tag=v0.0.0" >> $GITHUB_OUTPUT
-          else
-            echo "deployed_tag=${DEPLOYMENT}" >> $GITHUB_OUTPUT
-          fi
-          echo "Current deployed tag in ${{ inputs.environment }}: ${DEPLOYMENT:-none}"
+      #     if [ -z "$DEPLOYMENT" ] || [ "$DEPLOYMENT" = "null" ]; then
+      #       echo "No previous deployment found for ${{ inputs.environment }}"
+      #       echo "deployed_tag=v0.0.0" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "deployed_tag=${DEPLOYMENT}" >> $GITHUB_OUTPUT
+      #     fi
+      #     echo "Current deployed tag in ${{ inputs.environment }}: ${DEPLOYMENT:-none}"
 
-      - name: Compare Tags
-        id: compare-tags
-        run: |
-          DEPLOYED_TAG="${{ steps.get-tag.outputs.deployed_tag }}"
-          RELEASE_TAG="${{ github.ref_name }}"
+      # - name: Compare Tags
+      #   id: compare-tags
+      #   run: |
+      #     DEPLOYED_TAG="${{ steps.get-tag.outputs.deployed_tag }}"
+      #     RELEASE_TAG="${{ github.ref_name }}"
           
-          if [ "$DEPLOYED_TAG" = "v0.0.0" ]; then
-            echo "✅ First deployment to environment"
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+      #     if [ "$DEPLOYED_TAG" = "v0.0.0" ]; then
+      #       echo "✅ First deployment to environment"
+      #       echo "should_deploy=true" >> $GITHUB_OUTPUT
+      #       exit 0
+      #     fi
           
-          # Extract versions for comparison
-          get_version() {
-            # Updated regex to handle test/vX.Y.Z-rc-hash format
-            echo "$1" | sed -E 's/.*v([0-9]+\.[0-9]+\.[0-9]+).*/\1/'
-          }
+      #     # Extract versions for comparison
+      #     get_version() {
+      #       # Updated regex to handle test/vX.Y.Z-rc-hash format
+      #       echo "$1" | sed -E 's/.*v([0-9]+\.[0-9]+\.[0-9]+).*/\1/'
+      #     }
           
-          # Clean the tags to handle test/vX.Y.Z-rc-hash format
-          DEPLOYED_VERSION=$(get_version "$DEPLOYED_TAG")
-          RELEASE_VERSION=$(get_version "$RELEASE_TAG")
+      #     # Clean the tags to handle test/vX.Y.Z-rc-hash format
+      #     DEPLOYED_VERSION=$(get_version "$DEPLOYED_TAG")
+      #     RELEASE_VERSION=$(get_version "$RELEASE_TAG")
           
-          echo "Comparing versions:"
-          echo "Deployed version: $DEPLOYED_VERSION"
-          echo "Release version: $RELEASE_VERSION"
+      #     echo "Comparing versions:"
+      #     echo "Deployed version: $DEPLOYED_VERSION"
+      #     echo "Release version: $RELEASE_VERSION"
           
-          if [ "$(printf '%s\n' "$RELEASE_VERSION" "$DEPLOYED_VERSION" | sort -V | head -n1)" = "$RELEASE_VERSION" ]; then
-            echo "⚠️ Warning: Release version ($RELEASE_VERSION) is older than or equal to deployed version ($DEPLOYED_VERSION)"
-            echo "should_deploy=false" >> $GITHUB_OUTPUT
-          else
-            echo "✅ Release version ($RELEASE_VERSION) is newer than deployed version ($DEPLOYED_VERSION)"
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-          fi
+      #     if [ "$(printf '%s\n' "$RELEASE_VERSION" "$DEPLOYED_VERSION" | sort -V | head -n1)" = "$RELEASE_VERSION" ]; then
+      #       echo "⚠️ Warning: Release version ($RELEASE_VERSION) is older than or equal to deployed version ($DEPLOYED_VERSION)"
+      #       echo "should_deploy=false" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "✅ Release version ($RELEASE_VERSION) is newer than deployed version ($DEPLOYED_VERSION)"
+      #       echo "should_deploy=true" >> $GITHUB_OUTPUT
+      #     fi
 
   mock-deploy:
-    needs: [get-deployed-tag]
-    if: needs.get-deployed-tag.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
