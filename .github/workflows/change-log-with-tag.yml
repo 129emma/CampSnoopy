@@ -1,0 +1,104 @@
+name: change-log-with-tag
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  generate-changelog:
+    name: generate-changelog
+    if: inputs.environment == 'prod' || inputs.environment == 'uat'
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.changelog.outputs.version }}
+    steps:
+      - name: 'Generate token'
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.BOT_APP_ID }}
+          private_key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.generate_token.outputs.token }}
+          fetch-tags: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: '9'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Debug - Print Branch Info
+        run: |
+          echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
+          echo "Git HEAD: $(git rev-parse HEAD)"
+          git branch -a
+
+      - name: Generate CHANGELOG
+        id: changelog
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          PRERELEASE: ${{ inputs.environment == 'uat' }}
+        run: |
+          # Enhanced debugging
+          echo "=== Initial Git State ==="
+          echo "GitHub SHA: ${{ github.sha }}"
+          echo "GitHub REF: ${{ github.ref }}"
+          echo "GitHub REF_NAME: ${{ github.ref_name }}"
+          echo "Current HEAD: $(git rev-parse HEAD)"
+          
+          if [ "$PRERELEASE" = "true" ]; then
+            echo "Running in prerelease mode"
+            pnpm semantic-release \
+              --debug \
+              --prerelease \
+              > >(tee release.log) 2>&1 || {
+                echo "=== Error running semantic-release ==="
+                cat release.log
+                exit 1
+              }
+          else
+            echo "Running in release mode"
+            pnpm semantic-release \
+              --debug \
+              > >(tee release.log) 2>&1 || {
+                echo "=== Error running semantic-release ==="
+                cat release.log
+                exit 1
+              }
+          fi
+          
+          # Get the version that was just released
+          LATEST_VERSION=$(grep "Published release" release.log | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' || echo "")
+          echo "Released version: $LATEST_VERSION"
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          
+          if [ -z "$LATEST_VERSION" ]; then
+            echo "No version was published"
+            exit 0
+          fi
+          
+          echo "=== Final Git State ==="
+          git branch -a
+
