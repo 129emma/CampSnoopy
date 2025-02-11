@@ -90,6 +90,8 @@ jobs:
           else
             pnpm semantic-release --branches $TEMP_BRANCH > release.log 2>&1
           fi
+
+          cat release.log
           
           # Get the version that was just released
           LATEST_VERSION=$(grep "Published release" release.log | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' || echo "")
@@ -112,9 +114,9 @@ jobs:
           fi
           
           # Clean up: Delete both local and remote temp branches
-          git checkout main  # Ensure we're not on the branch we're trying to delete
-          git branch -D $TEMP_BRANCH
-          git push origin --delete $TEMP_BRANCH
+          # git checkout main  # Ensure we're not on the branch we're trying to delete
+          # git branch -D $TEMP_BRANCH
+          # git push origin --delete $TEMP_BRANCH
 
   create-release:
     needs: generate-changelog
