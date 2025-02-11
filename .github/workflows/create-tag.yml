@@ -28,7 +28,8 @@ jobs:
       - name: Create test tag
         id: create_tag
         run: |
-          NEW_TAG="test/${{ github.sha }}-${{ github.ref_name }}-rc"
+          echo "SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+          NEW_TAG="test/$SHORT_SHA-${{ github.ref_name }}-rc"
           git tag $NEW_TAG
           git push origin $NEW_TAG
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
