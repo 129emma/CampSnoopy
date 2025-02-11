@@ -197,12 +197,3 @@ jobs:
           echo "=== Final Git State ==="
           git branch -a
 
-  # create-release:
-  #   needs: generate-changelog
-  #   if: needs.generate-changelog.outputs.version != ''
-  #   uses: ./.github/workflows/create-github-release.yml
-  #   with:
-  #     version: ${{ needs.generate-changelog.outputs.version }}
-  #     environment: ${{ inputs.environment }}
-  #     changelog: ${{ needs.generate-changelog.outputs.changelog_content }}
-  #   secrets: inherit
