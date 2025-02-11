@@ -19,6 +19,8 @@ jobs:
     if: inputs.environment == 'prod' || inputs.environment == 'uat'
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.changelog.outputs.version }}
     steps:
       - name: 'Generate token'
         id: generate_token
@@ -53,19 +55,60 @@ jobs:
           echo "All branches:"
           git branch -a
 
-      # - name: Generate Release Documentation
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     PRERELEASE: ${{ inputs.environment == 'uat' }}
-      #   run: |
-      #     # Create a temporary branch from the current commit
-      #     git checkout -b temp-release-branch-${{ github.sha }}
+      - name: Generate CHANGELOG
+        id: changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRERELEASE: ${{ inputs.environment == 'uat' }}
+        run: |
+          # Store current HEAD commit hash
+          CURRENT_SHA=$(git rev-parse HEAD)
           
-      #     if [ "$PRERELEASE" = "true" ]; then
-      #       pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }}
-      #     else
-      #       pnpm semantic-release --branches temp-release-branch-${{ github.sha }}
-      #     fi          
-      #     # Clean up: Switch back to previous branch and delete temp branch
-      #     git checkout -
-      #     git branch -D temp-release-branch-${{ github.sha }}
+          # Create and push temporary branch from current HEAD
+          git checkout -b temp-release-branch-${{ github.sha }} $CURRENT_SHA
+          git push origin temp-release-branch-${{ github.sha }}
+          
+          # Verify the branch is at the correct commit
+          if [ "$(git rev-parse HEAD)" != "$CURRENT_SHA" ]; then
+            echo "Error: Branch is not at the expected commit"
+            exit 1
+          fi
+          
+          if [ "$PRERELEASE" = "true" ]; then
+            pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }} | tee release.log
+          else
+            pnpm semantic-release --branches temp-release-branch-${{ github.sha }} | tee release.log
+          fi          
+          
+          # If semantic-release made changes, copy them to main
+          if git diff --quiet; then
+            echo "No changes made by semantic-release"
+          else
+            # Configure git user for merge commit
+            git config --global user.email "SnoopyCamp[bot]@users.noreply.github.com"
+            git config --global user.name "SnoopyCamp"
+            
+            # Get the changes from temporary branch
+            git checkout main
+            RELEASE_TYPE=$([ "$PRERELEASE" = "true" ] && echo "UAT" || echo "production")
+            
+            # Get the version that was just released
+            LATEST_VERSION=$(grep "Published release" release.log | awk '{print $3}' | head -n1 || echo "unknown")
+            echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+            
+            git merge --no-ff temp-release-branch-${{ github.sha }} -m "chore(release): merge ${RELEASE_TYPE} changelog updates for version v${LATEST_VERSION} [skip ci]"
+            git push origin main
+          fi
+          
+          # Clean up: Delete both local and remote temp branches
+          git branch -D temp-release-branch-${{ github.sha }}
+          git push origin --delete temp-release-branch-${{ github.sha }}
+
+  create-release:
+    needs: generate-changelog
+    if: needs.generate-changelog.outputs.version != ''
+    uses: ./.github/workflows/create-github-release.yml
+    with:
+      version: ${{ needs.generate-changelog.outputs.version }}
+      environment: ${{ inputs.environment }}
+    secrets: inherit
