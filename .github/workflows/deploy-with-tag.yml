@@ -1,0 +1,82 @@
+name: deploy-with-tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: environment to deploy to
+        required: true
+        type: choice
+        default: uat
+        options:
+          - dev
+          - uat
+          - prod
+      releaseType:
+        description: release type to deploy
+        required: true
+        type: choice
+        default: semantic
+        options:
+          - semantic
+          - release-please
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  mock-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Mock Build Process
+        run: |
+          echo "🏗️ Building application..."
+          echo "Building version: ${{ github.ref_name }}"
+          echo "✅ Build completed"
+
+      - name: Mock Tests
+        run: |
+          echo "🧪 Running tests..."
+          echo "Testing version: ${{ github.ref_name }}"
+          echo "✅ Tests passed"
+
+      - name: Mock Deploy
+        run: |
+          echo "🚀 Deploying version ${{ github.ref_name }} to ${{ inputs.environment }}..."
+          echo "✅ Deployment completed"
+
+  semantic-release:
+    needs: mock-deploy
+    if: |
+      inputs.releaseType == 'semantic' && 
+      (inputs.environment == 'prod' || inputs.environment == 'uat')
+    uses: ./.github/workflows/change-log-with-tag.yml
+    with:
+      environment: ${{ inputs.environment }}
+    secrets: inherit
+
+  release-please:
+    needs: mock-deploy
+    if: |
+      inputs.releaseType == 'release-please' && 
+      (inputs.environment == 'prod' || inputs.environment == 'uat')
+    uses: ./.github/workflows/release-please.yml
+    with:
+      environment: ${{ inputs.environment }}
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: write
