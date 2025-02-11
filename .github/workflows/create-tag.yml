@@ -50,13 +50,13 @@ jobs:
           
            # Get the version that was just released
           LATEST_VERSION=$(grep "Published release" release.log | awk '{print $3}' | head -n1 || echo "unknown")
-          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "Next version: $LATEST_VERSION"
           
           # Get short SHA
           SHORT_SHA=$(git rev-parse --short HEAD)
           
           # Create new tag
-          NEW_TAG="test/v${VERSION}-rc-${SHORT_SHA}"
+          NEW_TAG="test/v${LATEST_VERSION}-rc-${SHORT_SHA}"
           git tag $NEW_TAG
           git push origin $NEW_TAG
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
