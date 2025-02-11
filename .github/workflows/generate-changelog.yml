@@ -75,12 +75,15 @@ jobs:
           fi
           
           if [ "$PRERELEASE" = "true" ]; then
-            pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }} | tee release.log
+            pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }} > release.log 2>&1
           else
-            pnpm semantic-release --branches temp-release-branch-${{ github.sha }} | tee release.log
+            pnpm semantic-release --branches temp-release-branch-${{ github.sha }} > release.log 2>&1
           fi
           
-           # Get the version that was just released
+          # Display the log file contents (equivalent to what tee was doing)
+          cat release.log
+          
+          # Get the version that was just released
           LATEST_VERSION=$(grep "Published release" release.log | awk '{print $3}' | head -n1 || echo "unknown")
           echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
           
