@@ -61,46 +61,75 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE: ${{ inputs.environment == 'uat' }}
         run: |
+          # Enhanced debugging
+          echo "=== Initial Git State ==="
+          echo "GitHub SHA: ${{ github.sha }}"
+          echo "GitHub REF: ${{ github.ref }}"
+          echo "GitHub REF_NAME: ${{ github.ref_name }}"
+          echo "Current HEAD: $(git rev-parse HEAD)"
+          echo "Current Branch/Tag: $(git rev-parse --abbrev-ref HEAD)"
+          git status
+          
           # Store current HEAD commit hash
           CURRENT_SHA=$(git rev-parse HEAD)
+          echo "Current SHA: $CURRENT_SHA"
           
           # Get the current ref (branch or tag)
           CURRENT_REF=$(git rev-parse --abbrev-ref HEAD)
           echo "Current ref: $CURRENT_REF"
           
-          # If we're on a tag, checkout the commit it points to
+          # If we're on a tag or detached HEAD, create branch from the commit it points to
           if [[ "$CURRENT_REF" == "HEAD" ]]; then
-            git checkout $CURRENT_SHA
+            echo "Detected detached HEAD state, creating branch from current commit"
+            git checkout -b temp-working-branch $CURRENT_SHA
           fi
           
           # Create and push temporary branch from current HEAD
           TEMP_BRANCH="temp-release-branch-${{ github.sha }}"
           echo "Creating temporary branch: $TEMP_BRANCH"
           git checkout -b $TEMP_BRANCH
-          git push origin $TEMP_BRANCH
+          
+          echo "=== Before Push State ==="
+          git status
+          git branch -a
+          
+          # Force push to ensure the branch is created
+          git push -f origin $TEMP_BRANCH
+          
+          echo "=== After Push State ==="
+          git branch -a
+          git status
           
           # Verify the branch is at the correct commit
           if [ "$(git rev-parse HEAD)" != "$CURRENT_SHA" ]; then
             echo "Error: Branch is not at the expected commit"
+            echo "Expected: $CURRENT_SHA"
+            echo "Got: $(git rev-parse HEAD)"
             exit 1
           fi
           
+          echo "=== Running semantic-release ==="
           if [ "$PRERELEASE" = "true" ]; then
-            pnpm semantic-release --prerelease --branches $TEMP_BRANCH > release.log 2>&1
+            echo "Running in prerelease mode"
+            pnpm semantic-release --debug --prerelease --branches $TEMP_BRANCH > release.log 2>&1
           else
-            pnpm semantic-release --branches $TEMP_BRANCH > release.log 2>&1
+            echo "Running in release mode"
+            pnpm semantic-release --debug --branches $TEMP_BRANCH > release.log 2>&1
           fi
 
+          echo "=== semantic-release output ==="
           cat release.log
           
           # Get the version that was just released
           LATEST_VERSION=$(grep "Published release" release.log | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' || echo "")
+          echo "Released version: $LATEST_VERSION"
           echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
           
           # If semantic-release made changes, copy them to main
           if git diff --quiet; then
             echo "No changes made by semantic-release"
           else
+            echo "=== Applying Changes to Main ==="
             # Configure git user for merge commit
             git config --global user.email "SnoopyCamp[bot]@users.noreply.github.com"
             git config --global user.name "SnoopyCamp"
@@ -114,9 +143,19 @@ jobs:
           fi
           
           # Clean up: Delete both local and remote temp branches
-          # git checkout main  # Ensure we're not on the branch we're trying to delete
-          # git branch -D $TEMP_BRANCH
-          # git push origin --delete $TEMP_BRANCH
+          echo "=== Cleanup ==="
+          echo "Switching to main branch..."
+          git checkout main
+          
+          echo "Deleting local branch..."
+          git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
+          
+          echo "Deleting remote branch..."
+          git push origin --delete $TEMP_BRANCH || echo "Failed to delete remote branch: $TEMP_BRANCH"
+          
+          echo "=== Final Git State ==="
+          git status
+          git branch -a
 
   create-release:
     needs: generate-changelog
