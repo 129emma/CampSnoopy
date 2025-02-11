@@ -87,13 +87,18 @@ jobs:
           echo "=== Running semantic-release ==="
           if [ "$PRERELEASE" = "true" ]; then
             echo "Running in prerelease mode"
+            # Create a temporary file for the full output
             GIT_LOCAL_BRANCH=$TEMP_BRANCH \
             GITHUB_REF=refs/heads/$TEMP_BRANCH \
             pnpm semantic-release \
               --debug \
               --prerelease \
               --no-ci \
-              > release.log 2>&1
+              > >(tee release.log) 2>&1 || {
+                echo "=== Error running semantic-release ==="
+                cat release.log
+                exit 1
+              }
           else
             echo "Running in release mode"
             GIT_LOCAL_BRANCH=$TEMP_BRANCH \
@@ -101,7 +106,11 @@ jobs:
             pnpm semantic-release \
               --debug \
               --no-ci \
-              > release.log 2>&1
+              > >(tee release.log) 2>&1 || {
+                echo "=== Error running semantic-release ==="
+                cat release.log
+                exit 1
+              }
           fi
 
           echo "=== semantic-release output ==="
