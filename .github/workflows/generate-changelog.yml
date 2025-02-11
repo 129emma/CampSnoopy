@@ -58,7 +58,7 @@ jobs:
       - name: Generate CHANGELOG
         id: changelog
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           PRERELEASE: ${{ inputs.environment == 'uat' }}
         run: |
           # Enhanced debugging
@@ -134,18 +134,28 @@ jobs:
             git config --global user.email "SnoopyCamp[bot]@users.noreply.github.com"
             git config --global user.name "SnoopyCamp"
             
+            # Fetch latest main
+            git fetch origin main
+            
+            # Switch to main and ensure it's up to date
             git checkout main
+            git pull origin main
+            
             RELEASE_TYPE=$([ "$PRERELEASE" = "true" ] && echo "UAT" || echo "production")
             
+            # Use the bot token for pushing
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            
+            # Merge changes
             git merge --no-ff $TEMP_BRANCH -m "chore(release): merge ${RELEASE_TYPE} changelog updates for version v${LATEST_VERSION} [skip ci]"
             git push origin main
           fi
           
-          # Clean up
+          # Clean up - ensure we're not on the branch we're trying to delete
           echo "=== Cleanup ==="
           git checkout main
-          git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
           git push origin --delete $TEMP_BRANCH || echo "Failed to delete remote branch: $TEMP_BRANCH"
+          git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
 
   create-release:
     needs: generate-changelog
