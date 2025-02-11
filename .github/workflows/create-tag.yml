@@ -48,8 +48,9 @@ jobs:
           # Run semantic-release and capture output
           OUTPUT=$(pnpm semantic-release --prerelease --dry-run)
           
-          # Extract version using grep and sed
-          VERSION=$(echo "$OUTPUT" | grep -m 1 "^# " | sed 's/# \([0-9.]*\).*/\1/')
+           # Get the version that was just released
+          LATEST_VERSION=$(grep "Published release" release.log | awk '{print $3}' | head -n1 || echo "unknown")
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
           
           # Get short SHA
           SHORT_SHA=$(git rev-parse --short HEAD)

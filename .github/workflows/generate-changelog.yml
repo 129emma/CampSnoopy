@@ -78,7 +78,11 @@ jobs:
             pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }} | tee release.log
           else
             pnpm semantic-release --branches temp-release-branch-${{ github.sha }} | tee release.log
-          fi          
+          fi
+          
+           # Get the version that was just released
+          LATEST_VERSION=$(grep "Published release" release.log | awk '{print $3}' | head -n1 || echo "unknown")
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
           
           # If semantic-release made changes, copy them to main
           if git diff --quiet; then
@@ -91,10 +95,6 @@ jobs:
             # Get the changes from temporary branch
             git checkout main
             RELEASE_TYPE=$([ "$PRERELEASE" = "true" ] && echo "UAT" || echo "production")
-            
-            # Get the version that was just released
-            LATEST_VERSION=$(grep "Published release" release.log | awk '{print $3}' | head -n1 || echo "unknown")
-            echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
             
             git merge --no-ff temp-release-branch-${{ github.sha }} -m "chore(release): merge ${RELEASE_TYPE} changelog updates for version v${LATEST_VERSION} [skip ci]"
             git push origin main
