@@ -1,3 +1,13 @@
+# [2.0.0](https://github.com/129emma/CampSnoopy/compare/prod/v1.0.0...prod/v2.0.0) (2025-02-11)
+
+
+* fix(Liq-Calc)!: 🚑️ fix critical bugs ([#22](https://github.com/129emma/CampSnoopy/issues/22)) ([4bc31b3](https://github.com/129emma/CampSnoopy/commit/4bc31b39ee444b143828d57cb2b2169652604467))
+
+
+### BREAKING CHANGES
+
+* This should bump release version
+
 # 1.0.0 (2025-02-11)
 
 
