@@ -84,7 +84,7 @@ jobs:
           cat release.log
           
           # Get the version that was just released
-          LATEST_VERSION=$(grep "Published release" release.log | awk '{print $3}' | head -n1 || echo "unknown")
+          LATEST_VERSION=$(grep "Published release" release.log | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' || echo "")
           echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
           
           # If semantic-release made changes, copy them to main

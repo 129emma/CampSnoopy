@@ -48,8 +48,17 @@ jobs:
           # Run semantic-release and capture output to file
           pnpm semantic-release --prerelease --dry-run > release.log 2>&1
           
+          # Display the log for debugging
+          cat release.log
+          
           # Get the version that was just released
-          LATEST_VERSION=$(grep "Published release" release.log | awk '{print $3}' | head -n1 || echo "unknown")
+          LATEST_VERSION=$(grep "Published release" release.log | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' || echo "")
+          
+          if [ -z "$LATEST_VERSION" ]; then
+            echo "No new version to be released"
+            exit 0
+          fi
+          
           echo "Next version: $LATEST_VERSION"
           
           # Get short SHA
