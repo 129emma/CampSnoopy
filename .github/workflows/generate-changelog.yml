@@ -134,8 +134,8 @@ jobs:
             git config --global user.email "SnoopyCamp[bot]@users.noreply.github.com"
             git config --global user.name "SnoopyCamp"
             
-            # Fetch latest main
-            git fetch origin main
+            # Fetch latest main and tags
+            git fetch origin main --tags
             
             # Switch to main and ensure it's up to date
             git checkout main
@@ -146,9 +146,20 @@ jobs:
             # Use the bot token for pushing
             git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
             
+            # Copy the version tag from temp branch to main
+            VERSION_TAG="v${LATEST_VERSION}"
+            if git rev-parse "$VERSION_TAG" >/dev/null 2>&1; then
+              # Tag exists, move it to current main
+              git tag -d "$VERSION_TAG" || true
+              git push origin ":refs/tags/$VERSION_TAG" || true
+            fi
+            git tag "$VERSION_TAG"
+            
             # Merge changes
             git merge --no-ff $TEMP_BRANCH -m "chore(release): merge ${RELEASE_TYPE} changelog updates for version v${LATEST_VERSION} [skip ci]"
-            git push origin main
+            
+            # Push both the merge and the tag
+            git push origin main --tags
           fi
           
           # Clean up - ensure we're not on the branch we're trying to delete
