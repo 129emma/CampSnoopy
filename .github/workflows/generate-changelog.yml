@@ -72,24 +72,23 @@ jobs:
           TEMP_BRANCH="temp-release-branch-${{ github.sha }}"
           echo "Creating temporary branch: $TEMP_BRANCH"
           
-          # Force create branch at current commit
+          # Force create branch at current commit and set upstream
           git switch -c $TEMP_BRANCH
+          git push -u origin $TEMP_BRANCH
           
-          echo "=== Before Push State ==="
-          git status
-          git branch -a
+          # Ensure we're on the branch and not in a detached HEAD state
+          git checkout $TEMP_BRANCH
           
-          # Force push to ensure the branch is created
-          git push -f origin HEAD:$TEMP_BRANCH
-          
-          echo "=== After Push State ==="
-          git branch -a
+          echo "=== Current Git State ==="
+          echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
           git status
           
-          # Run semantic-release with explicit branch name
+          # Run semantic-release with explicit environment variables
           echo "=== Running semantic-release ==="
           if [ "$PRERELEASE" = "true" ]; then
             echo "Running in prerelease mode"
+            GIT_LOCAL_BRANCH=$TEMP_BRANCH \
+            GITHUB_REF=refs/heads/$TEMP_BRANCH \
             pnpm semantic-release \
               --debug \
               --prerelease \
@@ -97,6 +96,8 @@ jobs:
               > release.log 2>&1
           else
             echo "Running in release mode"
+            GIT_LOCAL_BRANCH=$TEMP_BRANCH \
+            GITHUB_REF=refs/heads/$TEMP_BRANCH \
             pnpm semantic-release \
               --debug \
               --no-ci \
