@@ -9,6 +9,9 @@ on:
       environment:
         required: true
         type: string
+      changelog:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -17,20 +20,6 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main  # Always use main branch as it has the latest changelog
-
-      - name: Read CHANGELOG.md
-        id: changelog
-        run: |
-          CHANGELOG_CONTENT=$(cat CHANGELOG.md)
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,15 +27,15 @@ jobs:
           RELEASE_NOTES="## Release Notes\n"
           RELEASE_NOTES+="Environment: ${{ inputs.environment }}\n\n"
           RELEASE_NOTES+="## Changelog\n"
-          RELEASE_NOTES+="${{ steps.changelog.outputs.content }}"
+          RELEASE_NOTES+="${{ inputs.changelog }}"
           
           # Create release with prerelease flag for UAT
           if [ "${{ inputs.environment }}" = "uat" ]; then
-            gh release create "v${{ inputs.version }}" \
-              --title "Release v${{ inputs.version }} (UAT)" \
+            gh release create "${{ inputs.version }}" \
+              --title "Release ${{ inputs.version }} (UAT)" \
               --notes "$RELEASE_NOTES" \
               --prerelease
           else
-            gh release create "v${{ inputs.version }}" \
-              --title "Release v${{ inputs.version }}" \
+            gh release create "${{ inputs.version }}" \
+              --title "Release ${{ inputs.version }}" \
               --notes "$RELEASE_NOTES" 

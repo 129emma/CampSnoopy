@@ -68,6 +68,10 @@ jobs:
           echo "GitHub REF_NAME: ${{ github.ref_name }}"
           echo "Current HEAD: $(git rev-parse HEAD)"
           
+          # Setup git configuration
+          git config --global user.email "SnoopyCamp[bot]@users.noreply.github.com"
+          git config --global user.name "SnoopyCamp"
+          
           # Create a new branch from the current commit
           TEMP_BRANCH="temp-release-branch-${{ github.sha }}"
           echo "Creating temporary branch: $TEMP_BRANCH"
@@ -87,7 +91,6 @@ jobs:
           echo "=== Running semantic-release ==="
           if [ "$PRERELEASE" = "true" ]; then
             echo "Running in prerelease mode"
-            # Create a temporary file for the full output
             GIT_LOCAL_BRANCH=$TEMP_BRANCH \
             GITHUB_REF=refs/heads/$TEMP_BRANCH \
             pnpm semantic-release \
@@ -125,15 +128,21 @@ jobs:
             echo "No version was published"
             exit 0
           fi
+
+          # Read changelog content while we're still on temp branch
+          if [ -f "CHANGELOG.md" ]; then
+            echo "=== Reading Changelog Content ==="
+            CHANGELOG_CONTENT=$(cat CHANGELOG.md)
+            echo "changelog_content<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
           
-          # If semantic-release made changes, copy them to main
+          # Copy changes from temp branch to main
           if git diff --quiet; then
             echo "No changes made by semantic-release"
           else
             echo "=== Applying Changes to Main ==="
-            git config --global user.email "SnoopyCamp[bot]@users.noreply.github.com"
-            git config --global user.name "SnoopyCamp"
-            
             # Fetch latest main and tags
             git fetch origin main --tags
             
@@ -146,7 +155,10 @@ jobs:
             # Use the bot token for pushing
             git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
             
-            # Copy the version tag from temp branch to main
+            # Copy changelog from temp branch
+            git checkout $TEMP_BRANCH -- CHANGELOG.md 
+            
+            # Copy the version tag from temp branch
             VERSION_TAG="v${LATEST_VERSION}"
             if git rev-parse "$VERSION_TAG" >/dev/null 2>&1; then
               # Tag exists, move it to current main
@@ -155,18 +167,17 @@ jobs:
             fi
             git tag "$VERSION_TAG"
             
-            # Merge changes
-            git merge --no-ff $TEMP_BRANCH -m "chore(release): merge ${RELEASE_TYPE} changelog updates for version v${LATEST_VERSION} [skip ci]"
-            
-            # Push both the merge and the tag
+            # Commit and push changes
+            git add CHANGELOG.md package.json
+            git commit -m "chore(release): ${RELEASE_TYPE} CHANGELOG updates for ${LATEST_VERSION} [skip ci]"
             git push origin main --tags
           fi
           
           # Clean up - ensure we're not on the branch we're trying to delete
           echo "=== Cleanup ==="
           git checkout main
-          git push origin --delete $TEMP_BRANCH || echo "Failed to delete remote branch: $TEMP_BRANCH"
-          git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
+          # git push origin --delete $TEMP_BRANCH || echo "Failed to delete remote branch: $TEMP_BRANCH"
+          # git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
 
   create-release:
     needs: generate-changelog
@@ -175,4 +186,5 @@ jobs:
     with:
       version: ${{ needs.generate-changelog.outputs.version }}
       environment: ${{ inputs.environment }}
+      changelog: ${{ needs.generate-changelog.outputs.changelog_content }}
     secrets: inherit
