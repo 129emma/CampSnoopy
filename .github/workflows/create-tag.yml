@@ -40,6 +40,8 @@ jobs:
 
       - name: Create test tag
         id: create_tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pnpm semantic-release --prerelease --dry-run --debug
           # SHORT_SHA=$(git rev-parse --short HEAD)
