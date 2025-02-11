@@ -45,10 +45,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Run semantic-release and capture output to file
-          pnpm semantic-release --prerelease --dry-run > release.log 2>&1
+          echo "=== Running semantic-release dry-run ==="
+          # Run semantic-release with output capturing both stdout and stderr
+          pnpm semantic-release --prerelease --dry-run > >(tee release.log) 2>&1 || {
+            echo "=== Error in semantic-release ==="
+            cat release.log
+            exit 1
+          }
           
-          # Display the log for debugging
+          echo "=== semantic-release output ==="
           cat release.log
           
           # Get the version that was just released
@@ -66,7 +71,13 @@ jobs:
           
           # Create new tag
           NEW_TAG="test/v${LATEST_VERSION}-rc-${SHORT_SHA}"
+          echo "=== Creating tag: $NEW_TAG ==="
           git tag $NEW_TAG
           git push origin $NEW_TAG
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "Created and pushed new tag: $NEW_TAG"
+          
+          # Debug information
+          echo "=== Final Git State ==="
+          git tag -l "test/*" --sort=-creatordate | head -n 5
+          git branch --show-current
