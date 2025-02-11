@@ -115,9 +115,6 @@ jobs:
                 exit 1
               }
           fi
-
-          echo "=== semantic-release output ==="
-          cat release.log
           
           # Get the version that was just released
           LATEST_VERSION=$(grep "Published release" release.log | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*$/\1/' || echo "")
@@ -159,7 +156,9 @@ jobs:
             git checkout $TEMP_BRANCH -- CHANGELOG.md 
             
             # Copy the version tag from temp branch
+            echo "=== Copying Version Tag ==="
             VERSION_TAG="v${LATEST_VERSION}"
+            echo "VERSION_TAG: ${VERSION_TAG}"
             if git rev-parse "$VERSION_TAG" >/dev/null 2>&1; then
               # Tag exists, move it to current main
               git tag -d "$VERSION_TAG" || true
