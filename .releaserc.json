@@ -1,9 +1,13 @@
 {
-  "branches": [
-    "main",
-    {"name": "main", "prerelease": true}
-  ],
   "tagFormat": "prod/v${version}",
+  "branches": [
+    "+([0-9])?(.{+([0-9]),x}).x",
+    "main",
+    {
+      "name": "temp-release-branch-*",
+      "prerelease": true
+    }
+  ],
   "plugins": [
     "@semantic-release/commit-analyzer",
     ["@semantic-release/release-notes-generator", {
