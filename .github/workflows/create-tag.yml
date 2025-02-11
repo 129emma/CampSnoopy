@@ -25,12 +25,27 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.generate_token.outputs.token }}
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+  
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+            version: '9'
+  
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Create test tag
         id: create_tag
         run: |
-          echo "SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
-          NEW_TAG="test/$SHORT_SHA-${{ github.ref_name }}-rc"
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
-          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "Created and pushed new tag: $NEW_TAG"
+          pnpm semantic-release --prerelease --dry-run --debug
+          # SHORT_SHA=$(git rev-parse --short HEAD)
+
+          # NEW_TAG="test/${SHORT_SHA}-rc"
+          # git tag $NEW_TAG
+          # git push origin $NEW_TAG
+          # echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          # echo "Created and pushed new tag: $NEW_TAG"
