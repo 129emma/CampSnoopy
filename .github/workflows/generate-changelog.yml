@@ -91,8 +91,12 @@ jobs:
           echo "=== Running semantic-release ==="
           if [ "$PRERELEASE" = "true" ]; then
             echo "Running in prerelease mode"
-            GIT_LOCAL_BRANCH=$TEMP_BRANCH \
-            GITHUB_REF=refs/heads/$TEMP_BRANCH \
+            GIT_AUTHOR_NAME=SnoopyCamp \
+            GIT_AUTHOR_EMAIL=SnoopyCamp[bot]@users.noreply.github.com \
+            GIT_COMMITTER_NAME=SnoopyCamp \
+            GIT_COMMITTER_EMAIL=SnoopyCamp[bot]@users.noreply.github.com \
+            GIT_LOCAL_BRANCH=main \
+            GITHUB_REF=refs/heads/main \
             pnpm semantic-release \
               --debug \
               --prerelease \
@@ -104,8 +108,12 @@ jobs:
               }
           else
             echo "Running in release mode"
-            GIT_LOCAL_BRANCH=$TEMP_BRANCH \
-            GITHUB_REF=refs/heads/$TEMP_BRANCH \
+            GIT_AUTHOR_NAME=SnoopyCamp \
+            GIT_AUTHOR_EMAIL=SnoopyCamp[bot]@users.noreply.github.com \
+            GIT_COMMITTER_NAME=SnoopyCamp \
+            GIT_COMMITTER_EMAIL=SnoopyCamp[bot]@users.noreply.github.com \
+            GIT_LOCAL_BRANCH=main \
+            GITHUB_REF=refs/heads/main \
             pnpm semantic-release \
               --debug \
               --no-ci \
@@ -178,12 +186,12 @@ jobs:
           # git push origin --delete $TEMP_BRANCH || echo "Failed to delete remote branch: $TEMP_BRANCH"
           # git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
 
-  create-release:
-    needs: generate-changelog
-    if: needs.generate-changelog.outputs.version != ''
-    uses: ./.github/workflows/create-github-release.yml
-    with:
-      version: ${{ needs.generate-changelog.outputs.version }}
-      environment: ${{ inputs.environment }}
-      changelog: ${{ needs.generate-changelog.outputs.changelog_content }}
-    secrets: inherit
+  # create-release:
+  #   needs: generate-changelog
+  #   if: needs.generate-changelog.outputs.version != ''
+  #   uses: ./.github/workflows/create-github-release.yml
+  #   with:
+  #     version: ${{ needs.generate-changelog.outputs.version }}
+  #     environment: ${{ inputs.environment }}
+  #     changelog: ${{ needs.generate-changelog.outputs.changelog_content }}
+  #   secrets: inherit
