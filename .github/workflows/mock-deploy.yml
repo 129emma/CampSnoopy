@@ -44,12 +44,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Add debug output for deployments
+          echo "Fetching deployments for ${{ inputs.environment }}..."
+          gh api \
+            repos/${{ github.repository }}/deployments \
+            --jq '.[] | select(.environment == "${{ inputs.environment }}") | {ref: .ref, state: .state, environment: .environment}' || echo "No deployments found"
           
           DEPLOYMENT=$(gh api \
             repos/${{ github.repository }}/deployments \
-            --jq ".[0] | select(.environment == \"${{ inputs.environment }}\" and .state == \"success\") | .ref")
+            --jq "[.[] | select(.environment == \"${{ inputs.environment }}\" and .state == \"success\")] | first | .ref")
           
-          if [ -z "$DEPLOYMENT" ]; then
+          echo "Raw deployment response: $DEPLOYMENT"
+          
+          if [ -z "$DEPLOYMENT" ] || [ "$DEPLOYMENT" = "null" ]; then
             echo "No previous deployment found for ${{ inputs.environment }}"
             echo "deployed_tag=v0.0.0" >> $GITHUB_OUTPUT
           else
