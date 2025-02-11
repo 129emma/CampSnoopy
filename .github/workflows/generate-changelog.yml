@@ -46,20 +46,26 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Generate Release Documentation
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PRERELEASE: ${{ inputs.environment == 'uat' }}
+      - name: Debug - Print Branch Info
         run: |
-          # Create a temporary branch from the current commit
-          git checkout -b temp-release-branch-${{ github.sha }}
+          echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
+          echo "Git HEAD: $(git rev-parse HEAD)"
+          echo "All branches:"
+          git branch -a
+
+      # - name: Generate Release Documentation
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     PRERELEASE: ${{ inputs.environment == 'uat' }}
+      #   run: |
+      #     # Create a temporary branch from the current commit
+      #     git checkout -b temp-release-branch-${{ github.sha }}
           
-          if [ "$PRERELEASE" = "true" ]; then
-            pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }}
-          else
-            pnpm semantic-release --branches temp-release-branch-${{ github.sha }}
-          fi
-          
-          # Clean up: Switch back to previous branch and delete temp branch
-          git checkout -
-          git branch -D temp-release-branch-${{ github.sha }}
+      #     if [ "$PRERELEASE" = "true" ]; then
+      #       pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }}
+      #     else
+      #       pnpm semantic-release --branches temp-release-branch-${{ github.sha }}
+      #     fi          
+      #     # Clean up: Switch back to previous branch and delete temp branch
+      #     git checkout -
+      #     git branch -D temp-release-branch-${{ github.sha }}
