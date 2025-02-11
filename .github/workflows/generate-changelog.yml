@@ -72,8 +72,10 @@ jobs:
           git config --global user.email "SnoopyCamp[bot]@users.noreply.github.com"
           git config --global user.name "SnoopyCamp"
           
-          # Fetch all tags first to ensure semantic-release can access the git history
-          git fetch --tags
+          # Fetch main branch and tags
+          git remote set-branches --add origin main
+          git fetch origin main --tags
+          git branch -f main origin/main
           
           # Create a new branch from the current commit
           TEMP_BRANCH="temp-release-branch-${{ github.sha }}"
@@ -185,9 +187,15 @@ jobs:
           
           # Clean up - ensure we're not on the branch we're trying to delete
           echo "=== Cleanup ==="
-          git checkout main
-          # git push origin --delete $TEMP_BRANCH || echo "Failed to delete remote branch: $TEMP_BRANCH"
-          # git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
+          git checkout -f main || true
+          # Clean up temporary branch
+          git push origin --delete $TEMP_BRANCH || echo "Failed to delete remote branch: $TEMP_BRANCH"
+          git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
+          # Clean up temporary main reference
+          git branch -D main || echo "Failed to delete local main branch"
+          
+          echo "=== Final Git State ==="
+          git branch -a
 
   # create-release:
   #   needs: generate-changelog
