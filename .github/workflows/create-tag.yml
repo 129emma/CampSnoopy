@@ -25,36 +25,10 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.generate_token.outputs.token }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-          version: '9'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Get next version
-        id: next_version
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-        run: |
-          # Run semantic-release in dry-run mode to get next version
-          VERSION=$(pnpm semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
-          if [ -z "$VERSION" ]; then
-            echo "No new version to release"
-            exit 1
-          fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create new tag
+      - name: Create test tag
         id: create_tag
         run: |
-          NEW_TAG="test/v${{ steps.next_version.outputs.version }}-rc-${{ github.sha }}"
+          NEW_TAG="test/${{ github.sha }}-${{ github.ref_name }}-rc"
           git tag $NEW_TAG
           git push origin $NEW_TAG
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT

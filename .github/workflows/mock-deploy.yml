@@ -44,12 +44,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Get tag pattern based on environment
-          if [ "${{ inputs.environment }}" = "dev" ]; then
-            TAG_PATTERN="test/v*"
-          else
-            TAG_PATTERN="prod/v*"
-          fi
           
           DEPLOYMENT=$(gh api \
             repos/${{ github.repository }}/deployments \

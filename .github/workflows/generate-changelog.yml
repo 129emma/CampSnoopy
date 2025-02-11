@@ -46,36 +46,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Extract version from test tag
-        id: get_version
-        run: |
-          # Extract version from the test tag (test/vX.Y.Z-rc-*)
-          VERSION=$(echo ${{ github.ref_name }} | sed -E 's/test\/v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create prod tag
-        if: inputs.environment == 'prod'
-        run: |
-          NEW_TAG="prod/v${{ steps.get_version.outputs.version }}"
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
-          echo "Created and pushed new tag: $NEW_TAG"
-
       - name: Generate Release Documentation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.get_version.outputs.version }}
           PRERELEASE: ${{ inputs.environment == 'uat' }}
         run: |
           # Create a temporary branch from the current commit
-          git checkout -b temp-release-branch
+          git checkout -b temp-release-branch-${{ github.sha }}
           
           if [ "$PRERELEASE" = "true" ]; then
-            pnpm semantic-release --prerelease --no-ci --branches temp-release-branch
+            pnpm semantic-release --prerelease --branches temp-release-branch-${{ github.sha }}
           else
-            pnpm semantic-release --no-ci --branches temp-release-branch
+            pnpm semantic-release --branches temp-release-branch-${{ github.sha }}
           fi
           
           # Clean up: Switch back to previous branch and delete temp branch
           git checkout -
-          git branch -D temp-release-branch
+          git branch -D temp-release-branch-${{ github.sha }}
