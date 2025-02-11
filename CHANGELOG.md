@@ -1,3 +1,18 @@
+# [2.1.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.0.0...prod/v2.1.0) (2025-02-11)
+
+
+### Bug Fixes
+
+* 🐛 fix a bug ([#24](https://github.com/129emma/CampSnoopy/issues/24)) ([f2d0c1e](https://github.com/129emma/CampSnoopy/commit/f2d0c1ebdec49454d3761e60f7d2d6de85110c29))
+* 🐛 something ([#25](https://github.com/129emma/CampSnoopy/issues/25)) ([7e08a44](https://github.com/129emma/CampSnoopy/commit/7e08a44417709753e404d58f24ece368daf54ee6))
+
+
+### Features
+
+* ⚡️ other feature ([#27](https://github.com/129emma/CampSnoopy/issues/27)) ([b666f91](https://github.com/129emma/CampSnoopy/commit/b666f917376a23cee23de3753d859aee2329ec53))
+* ✨ introduce some new features ([#23](https://github.com/129emma/CampSnoopy/issues/23)) ([b21b3f3](https://github.com/129emma/CampSnoopy/commit/b21b3f36b391fd8d7f22f2358202be3776687097))
+* ✨ this is a feature ([#26](https://github.com/129emma/CampSnoopy/issues/26)) ([ea197bb](https://github.com/129emma/CampSnoopy/commit/ea197bb05138a89218bc2f54072174dc4c3ce9f8))
+
 # [2.0.0](https://github.com/129emma/CampSnoopy/compare/prod/v1.0.0...prod/v2.0.0) (2025-02-11)
 
 
