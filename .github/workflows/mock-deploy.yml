@@ -71,11 +71,17 @@ jobs:
           
           # Extract versions for comparison
           get_version() {
+            # Updated regex to handle test/vX.Y.Z-rc-hash format
             echo "$1" | sed -E 's/.*v([0-9]+\.[0-9]+\.[0-9]+).*/\1/'
           }
           
+          # Clean the tags to handle test/vX.Y.Z-rc-hash format
           DEPLOYED_VERSION=$(get_version "$DEPLOYED_TAG")
           RELEASE_VERSION=$(get_version "$RELEASE_TAG")
+          
+          echo "Comparing versions:"
+          echo "Deployed version: $DEPLOYED_VERSION"
+          echo "Release version: $RELEASE_VERSION"
           
           if [ "$(printf '%s\n' "$RELEASE_VERSION" "$DEPLOYED_VERSION" | sort -V | head -n1)" = "$RELEASE_VERSION" ]; then
             echo "⚠️ Warning: Release version ($RELEASE_VERSION) is older than or equal to deployed version ($DEPLOYED_VERSION)"
@@ -100,18 +106,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Install dependencies
-        run: |
-          npm install -g conventional-changelog-cli
-
-      - name: Generate and Display Deployment Changes
-        run: |
-          echo "📋 Changes to be deployed:"
-          conventional-changelog -p angular \
-            --from ${{ needs.get-deployed-tag.outputs.deployed_tag }} \
-            --to ${{ github.ref_name }} \
-            --release-count 0
 
       - name: Mock Build Process
         run: |
@@ -177,7 +171,7 @@ jobs:
       - name: Get Version from Tag
         id: version
         run: |
-          # Extract version from the tag (test/vX.Y.Z-rc-* or prod/vX.Y.Z)
+          # Updated regex to handle test/vX.Y.Z-rc-hash format
           VERSION=$(echo ${{ github.ref_name }} | sed -E 's/.*v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
