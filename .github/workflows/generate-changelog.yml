@@ -72,6 +72,9 @@ jobs:
           git config --global user.email "SnoopyCamp[bot]@users.noreply.github.com"
           git config --global user.name "SnoopyCamp"
           
+          # Fetch all tags first to ensure semantic-release can access the git history
+          git fetch --tags
+          
           # Create a new branch from the current commit
           TEMP_BRANCH="temp-release-branch-${{ github.sha }}"
           echo "Creating temporary branch: $TEMP_BRANCH"
