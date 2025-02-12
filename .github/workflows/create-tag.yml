@@ -1,14 +1,20 @@
 name: create-tag-on-merge
 
 on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
   push:
     branches:
       - main
 
 jobs:
   create-tag:
-    # Skip if the push is from changelog merge (contains [skip ci])
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    # Only run on merged PRs or direct pushes, skip if [skip ci]
+    if: |
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     outputs:
       new_tag: ${{ steps.create_tag.outputs.new_tag }}
@@ -33,13 +39,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Try to get source branch from merge commit message
-          SOURCE_BRANCH=$(git log -1 --pretty=%B | grep -o "from ['\"].*['\"]" | sed "s/from ['\"]//;s/['\"]$//" || echo "main")
-          
-          # If SOURCE_BRANCH is empty, set it to "main"
-          if [ -z "$SOURCE_BRANCH" ]; then
-            SOURCE_BRANCH="main"
-          fi
+          # Get source branch name from GitHub context
+          SOURCE_BRANCH="${{ github.head_ref || github.ref_name }}"
+          echo "Source branch: $SOURCE_BRANCH"
           
           # Get short SHA (7 characters)
           SHORT_SHA=$(git rev-parse --short=7 HEAD)
