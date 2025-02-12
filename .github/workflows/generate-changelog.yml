@@ -185,14 +185,14 @@ jobs:
             git push origin main --tags
           fi
           
-          # Clean up - ensure we're not on the branch we're trying to delete
+          # Clean up - modify cleanup section
           echo "=== Cleanup ==="
+          # Make sure we're on main branch
           git checkout -f main || true
+          
           # Clean up temporary branch
           git push origin --delete $TEMP_BRANCH || echo "Failed to delete remote branch: $TEMP_BRANCH"
           git branch -D $TEMP_BRANCH || echo "Failed to delete local branch: $TEMP_BRANCH"
-          # Clean up temporary main reference
-          git branch -D main || echo "Failed to delete local main branch"
           
           echo "=== Final Git State ==="
           git branch -a
