@@ -1,3 +1,18 @@
+# [2.2.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.1.0...prod/v2.2.0) (2025-02-12)
+
+
+### Bug Fixes
+
+* 🐛 fix tag extract ([#31](https://github.com/129emma/CampSnoopy/issues/31)) ([39f78b6](https://github.com/129emma/CampSnoopy/commit/39f78b640fc29b7630ed1909a35b358a326a2068))
+* 🐛 fix to get source branch ([#32](https://github.com/129emma/CampSnoopy/issues/32)) ([566d613](https://github.com/129emma/CampSnoopy/commit/566d61340ebeb4eadd22a6f0893b2f7068d48337))
+* 🐛 limit scenario ([#33](https://github.com/129emma/CampSnoopy/issues/33)) ([aa28249](https://github.com/129emma/CampSnoopy/commit/aa28249b7b2dc78f6cb317c64417c17acaa50039))
+
+
+### Features
+
+* ✨ add new temp workflows ([#28](https://github.com/129emma/CampSnoopy/issues/28)) ([6791e1c](https://github.com/129emma/CampSnoopy/commit/6791e1c10e0b187a306656bfce256f1142ff833e))
+* ✨ generate tag use feature branch name ([#30](https://github.com/129emma/CampSnoopy/issues/30)) ([dec5ecf](https://github.com/129emma/CampSnoopy/commit/dec5ecf010a66f627fc71b9af17f662e752d15e9))
+
 # [2.1.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.0.0...prod/v2.1.0) (2025-02-11)
 
 
