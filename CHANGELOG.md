@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.2.0...prod/v2.3.0) (2025-02-12)
+
+
+### Features
+
+* ✨ improve clean up process ([#34](https://github.com/129emma/CampSnoopy/issues/34)) ([2f78f7d](https://github.com/129emma/CampSnoopy/commit/2f78f7df490f43b35f6b4cc5d8f1957234c1f44a))
+
 # [2.2.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.1.0...prod/v2.2.0) (2025-02-12)
 
 
