@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.3.1...prod/v2.4.0) (2025-02-13)
+
+
+### Features
+
+* **Liq-Calc:** ✨ introduce a new feature ([#36](https://github.com/129emma/CampSnoopy/issues/36)) ([8d7687b](https://github.com/129emma/CampSnoopy/commit/8d7687b5c74d67f32212cadc499d7bb601c99279))
+
 ## [2.3.1](https://github.com/129emma/CampSnoopy/compare/prod/v2.3.0...prod/v2.3.1) (2025-02-13)
 
 
