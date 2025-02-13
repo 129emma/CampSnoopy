@@ -1,3 +1,15 @@
+# [2.5.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.4.0...prod/v2.5.0) (2025-02-13)
+
+
+### Features
+
+* ✨ a feature commit ([#38](https://github.com/129emma/CampSnoopy/issues/38)) ([685324e](https://github.com/129emma/CampSnoopy/commit/685324e40ab877d708cc95daf7a990d40238c014))
+
+
+### BREAKING CHANGES
+
+* This will trigger version bump as it's breakchange
+
 # [2.4.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.3.1...prod/v2.4.0) (2025-02-13)
 
 
