@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/129emma/CampSnoopy/compare/prod/v2.3.0...prod/v2.3.1) (2025-02-13)
+
+
+### Bug Fixes
+
+* 🚑️ a hotfix ([#35](https://github.com/129emma/CampSnoopy/issues/35)) ([77ca856](https://github.com/129emma/CampSnoopy/commit/77ca8563643a56ca2d188880892650827c2dbcf7))
+
 # [2.3.0](https://github.com/129emma/CampSnoopy/compare/prod/v2.2.0...prod/v2.3.0) (2025-02-12)
 
 
