@@ -16,7 +16,7 @@ on:
         description: release type to deploy
         required: true
         type: choice
-        default: semantic
+        default: release-please
         options:
           - semantic
           - release-please
