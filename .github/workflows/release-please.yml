@@ -20,4 +20,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           # this is a built-in strategy in release-please, see "Action Inputs"
           # for more options
-          release-type: "simple"
+          release-type: "node"
+          skip-github-pull-request: true
